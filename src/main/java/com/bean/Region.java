@@ -7,6 +7,18 @@ public class Region implements Serializable {
     public Integer start = 0;
     public Integer end = 0;
 
+    public Region(String regionStr) {
+        this.chrom = regionStr.split(":")[0];
+        this.start = Integer.valueOf(regionStr.split(":")[1].split("-")[0]);
+        this.end = Integer.valueOf(regionStr.split(":")[1].split("-")[1]);
+    }
+
+    public Region(String chrom, Integer start, Integer end) {
+        this.chrom = chrom;
+        this.start = start;
+        this.end = end;
+    }
+
     public String getChrom() {
         return chrom;
     }

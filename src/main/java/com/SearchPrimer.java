@@ -1,5 +1,9 @@
 package com;
 
+import com.File.BedFile;
+import com.File.CpgFile;
+import com.File.MHapFile;
+import com.File.SearchPrimerOutputFIle;
 import com.args.SearchPrimerArgs;
 import com.bean.MHapInfo;
 import com.bean.Region;
@@ -20,6 +24,10 @@ public class SearchPrimer {
         log.info("command.searchPrimer start!");
         args = searchPrimerArgs;
 
+        CpgFile cpgFile = new CpgFile(args.getCpgPath());
+        MHapFile mHapFileN = new MHapFile(args.getMhapPathN());
+        MHapFile mHapFileT = new MHapFile(args.getMhapPathT());
+
         // check the command
         boolean checkResult = checkArgs();
         if (!checkResult) {
@@ -30,36 +38,37 @@ public class SearchPrimer {
         // get regionList, from region or bedfile
         List<Region> regionList = new ArrayList<>();
         if (args.getRegion() != null && !args.getRegion().equals("")) {
-            Region region = util.parseRegion(args.getRegion());
+            Region region = new Region(args.getRegion());
             regionList.add(region);
         } else if (args.getBedPath() != null && !args.getBedPath().equals("")) {
-            regionList = util.getBedRegionList(args.getBedPath());
+            BedFile bedFile = new BedFile(args.getBedPath());
+            regionList = bedFile.parseToRegionList();
         }
 
         for (Region region : regionList) {
             log.info("searchPrimer read" + region.toHeadString() + " start! ");
             // parse the cpg file
-            List<Integer> cpgPosList = util.parseCpgFileWithShift(args.getCpgPath(), region, 2000);
+            List<Integer> cpgPosList = cpgFile.parseByRegionWithShift(region, 2000);
             if (cpgPosList.size() < 1) {
                 continue;
             }
 
             // parse the mhap file
-            List<MHapInfo> tumorMHapList = util.parseMhapFile(args.getMhapPathT(), region, "both", true);
+            List<MHapInfo> tumorMHapList = mHapFileT.parseByRegion(region, "both", true);
             if (tumorMHapList.size() < 1) {
                 continue;
             }
-            List<MHapInfo> normalMHapList = util.parseMhapFile(args.getMhapPathN(), region, "both", true);
+            List<MHapInfo> normalMHapList = mHapFileN.parseByRegion(region, "both", true);
             if (normalMHapList.size() < 1) {
                 continue;
             }
 
-            BufferedWriter bufferedWriter = util.createOutputFile(args.getOutputDir(), args.getTag() + "_" + region.toFileString() + ".searchPrimer.txt");
-            bufferedWriter.write("Fpos" + "\t" + "Rpos" + "\t" + "Fpattern" + "\t" + "Rpattern" + "\t" +
+            String outputFIleName = args.getTag() + "_" + region.toFileString() + ".searchPrimer.txt";
+            SearchPrimerOutputFIle outputFIle = new SearchPrimerOutputFIle(args.getOutputDir(), outputFIleName);
+            outputFIle.writeLine("Fpos" + "\t" + "Rpos" + "\t" + "Fpattern" + "\t" + "Rpattern" + "\t" +
                     "T_RC" + "\t" + "T_PRC" + "\t" + "T" + "\t" + "N_RC" + "\t" + "N_PRC" + "\t" +"N" + "\t" + "FC" + "\n");
 
-            Region fWindow = new Region(); // forward window region
-            fWindow.setChrom(region.getChrom());
+            Region fWindow = new Region(region.getChrom(), 0, 0); // forward window region
             Integer fWindowStart = region.getStart(); // forward window start position
             Integer totalPosCnt = region.getEnd() - region.getStart();
             Integer readPosCnt = 0;
@@ -78,8 +87,7 @@ public class SearchPrimer {
                     continue;
                 }
 
-                Region rWindow = new Region(); // reverse window region
-                rWindow.setChrom(region.getChrom());
+                Region rWindow = new Region(region.getChrom(), 0, 0); // reverse window region
                 Integer rWindowStart = fWindow.getEnd() + args.getMinInsertSize() + 1; // reverse window start position
                 for (; rWindowStart < fWindow.getEnd() + args.getMaxInsertSize() + 1 && rWindow.getEnd() <= region.getEnd(); rWindowStart++) {
                     rWindow.setStart(rWindowStart); // reverse window start position
@@ -87,10 +95,7 @@ public class SearchPrimer {
                     //log.info("Reverse window: " + rWindow.toHeadString() + " read start!");
 
                     // get the region include forward and reverse window
-                    Region f2rWindow = new Region();
-                    f2rWindow.setChrom(region.getChrom());
-                    f2rWindow.setStart(fWindow.getStart());
-                    f2rWindow.setEnd(rWindow.getEnd());
+                    Region f2rWindow = new Region(region.getChrom(), fWindow.getStart(), rWindow.getEnd());
 
                     // get the cpg position list in both forward and reverse window
                     List<Integer> cpgPosListInWindow = getCpgPosListInWindow(cpgPosList, f2rWindow);
@@ -102,19 +107,18 @@ public class SearchPrimer {
                     if (cpgPosListInRWindow.size() < 1) {
                         continue;
                     }
-                    Integer fWindowCpgStartIndex = util.indexOfList(cpgPosListInWindow, 0, cpgPosListInWindow.size() - 1, cpgPosListInFWindow.get(0));
-                    Integer fWindowCpgEndIndex = util.indexOfList(cpgPosListInWindow, 0, cpgPosListInWindow.size() - 1, cpgPosListInFWindow.get(cpgPosListInFWindow.size() - 1));
-                    Integer rWindowCpgStartIndex = util.indexOfList(cpgPosListInWindow, 0, cpgPosListInWindow.size() - 1, cpgPosListInRWindow.get(0));
-                    Integer rWindowCpgEndIndex = util.indexOfList(cpgPosListInWindow, 0, cpgPosListInWindow.size() - 1, cpgPosListInRWindow.get(cpgPosListInRWindow.size() - 1));
-                    Integer cpgStart = cpgPosListInWindow.get(fWindowCpgStartIndex);
+                    Integer fWindowCpgStartIndex = util.indexOfList(cpgPosListInWindow, cpgPosListInFWindow.get(0));
+                    Integer fWindowCpgEndIndex = util.indexOfList(cpgPosListInWindow, cpgPosListInFWindow.get(cpgPosListInFWindow.size() - 1));
+                    Integer rWindowCpgStartIndex = util.indexOfList(cpgPosListInWindow, cpgPosListInRWindow.get(0));
+                    Integer rWindowCpgEndIndex = util.indexOfList(cpgPosListInWindow, cpgPosListInRWindow.get(cpgPosListInRWindow.size() - 1));                    Integer cpgStart = cpgPosListInWindow.get(fWindowCpgStartIndex);
                     Integer cpgEnd = cpgPosListInWindow.get(rWindowCpgEndIndex);
 
                     // get the tumor and normal mhap list in window
-                    List<MHapInfo> tumorMHapListInWindow = getMHapListInWindow(tumorMHapList, f2rWindow, cpgStart, cpgEnd);
+                    List<MHapInfo> tumorMHapListInWindow = getMHapListInWindow(tumorMHapList, cpgStart, cpgEnd);
                     if (tumorMHapListInWindow.size() < args.getMinCov()) {
                         continue;
                     }
-                    List<MHapInfo> normalMHapListInWindow = getMHapListInWindow(normalMHapList, f2rWindow, cpgStart, cpgEnd);
+                    List<MHapInfo> normalMHapListInWindow = getMHapListInWindow(normalMHapList, cpgStart, cpgEnd);
                     if (normalMHapListInWindow.size() < args.getMinCov()) {
                         continue;
                     }
@@ -164,7 +168,7 @@ public class SearchPrimer {
                         }
                         Double foldChange = tumorRate / normalRate;
                         if (tumorRate >= args.getMinT() && normalRate <= args.getMaxN() && foldChange >= args.getMinFC()) {
-                            bufferedWriter.write(fWindow.toHeadString() + "\t" + rWindow.toHeadString() + "\t" +
+                            outputFIle.writeLine(fWindow.toHeadString() + "\t" + rWindow.toHeadString() + "\t" +
                                     key.substring(fWindowCpgStartIndex, fWindowCpgEndIndex + 1) + "\t" + key.substring(fWindowCpgEndIndex + 1) + "\t"
                                     + tumarTotalPatternCount + "\t" + tumarPatternCount + "\t" + tumorRate.floatValue() + "\t" +  normalTotalPatternCount + "\t" +
                                     normalPatternCount + "\t" + normalRate.floatValue() + "\t" + foldChange.floatValue() + "\n");
@@ -181,7 +185,7 @@ public class SearchPrimer {
                             Double normalRate = newNormalPatternMap.get(key).doubleValue() / normalTotalPatternCount.doubleValue();
                             Double foldChange = tumorRate / normalRate;
                             if (tumorRate >= args.getMinT() && normalRate <= args.getMaxN() && foldChange >= args.getMinFC()) {
-                                bufferedWriter.write(fWindow.toHeadString() + "\t" + rWindow.toHeadString() + "\t" +
+                                outputFIle.writeLine(fWindow.toHeadString() + "\t" + rWindow.toHeadString() + "\t" +
                                         key.substring(fWindowCpgStartIndex, fWindowCpgEndIndex + 1) + "\t" + key.substring(fWindowCpgEndIndex + 1) + "\t"
                                         + tumarTotalPatternCount + "\t" + tumarPatternCount + "\t" + tumorRate.floatValue() + "\t" +  normalTotalPatternCount + "\t" +
                                         normalPatternCount + "\t" + normalRate.floatValue() + "\t" + foldChange.floatValue() + "\n");
@@ -195,7 +199,7 @@ public class SearchPrimer {
             }
 
             log.info("searchPrimer read" + region.toHeadString() + " end! ");
-            bufferedWriter.close();
+            outputFIle.close();
         }
 
         log.info("command.searchPrimer end!");
@@ -223,13 +227,13 @@ public class SearchPrimer {
 
         Integer cpgIndex;
         Integer startPos = window.getStart();
-        while (startPos <= window.getEnd() && util.indexOfList(cpgPosList, 0, cpgPosList.size() - 1, startPos) < 0) {
+        while (startPos <= window.getEnd() && util.indexOfList(cpgPosList, startPos) < 0) {
             startPos++;
         }
         if (startPos >= window.getEnd()) {
             return cpgPosListInWindow;
         }
-        cpgIndex = util.indexOfList(cpgPosList, 0, cpgPosList.size() - 1, startPos);
+        cpgIndex = util.indexOfList(cpgPosList, startPos);
 
         while (cpgIndex < cpgPosList.size() && cpgPosList.get(cpgIndex) <= window.getEnd()) {
             cpgPosListInWindow.add(cpgPosList.get(cpgIndex));
@@ -239,7 +243,7 @@ public class SearchPrimer {
         return cpgPosListInWindow;
     }
 
-    private List<MHapInfo> getMHapListInWindow(List<MHapInfo> mHapList, Region f2rWindow, Integer startCpg, Integer endCpg) {
+    private List<MHapInfo> getMHapListInWindow(List<MHapInfo> mHapList, Integer startCpg, Integer endCpg) {
         List<MHapInfo> mHapListNew = new ArrayList<>();
         for (MHapInfo mHapInfo : mHapList) {
             if (mHapInfo.getStart() <= startCpg && mHapInfo.getEnd() >= endCpg) {
@@ -256,10 +260,8 @@ public class SearchPrimer {
         Map<String, Integer> tumorPatternMap = new HashMap<>();
 
         for (MHapInfo mHapInfo : mHapList) {
-            Integer startCpgIndex = util.indexOfList(cpgPosList, 0, cpgPosList.size() - 1, startCpg) -
-                    util.indexOfList(cpgPosList, 0, cpgPosList.size() - 1, mHapInfo.getStart());
-            Integer endCpgIndex = util.indexOfList(cpgPosList, 0, cpgPosList.size() - 1, endCpg) -
-                    util.indexOfList(cpgPosList, 0, cpgPosList.size() - 1, mHapInfo.getStart());
+            Integer startCpgIndex = util.indexOfList(cpgPosList, startCpg) - util.indexOfList(cpgPosList, mHapInfo.getStart());
+            Integer endCpgIndex = util.indexOfList(cpgPosList, endCpg) - util.indexOfList(cpgPosList, mHapInfo.getStart());
             String pattern = mHapInfo.getCpg().substring(startCpgIndex, endCpgIndex + 1);
             if (tumorPatternMap.containsKey(pattern)) {
                 tumorPatternMap.put(pattern, tumorPatternMap.get(pattern) + mHapInfo.getCnt());
