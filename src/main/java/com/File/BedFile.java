@@ -12,8 +12,9 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
-public class BedFile {
+public class BedFile implements InputFile{
     public static final Logger log = LoggerFactory.getLogger(BedFile.class);
 
     File bedFile;
@@ -22,7 +23,13 @@ public class BedFile {
         bedFile = new File(bedPath);
     }
 
-    public List<Region> parseToRegionList() throws Exception {
+    @Override
+    public List<?> parseByRegion(Region region) throws Exception {
+        return null;
+    }
+
+    @Override
+    public List<Region> parseWholeFile() throws Exception {
         List<Region> regionList = new ArrayList<>();
         BufferedReader bufferedReader = new BufferedReader(new FileReader(bedFile));
         String bedLine = "";
@@ -38,4 +45,12 @@ public class BedFile {
         return regionList;
     }
 
+    @Override
+    public Map<?, ?> parseWholeFileGroupByChr() throws Exception {
+        return null;
+    }
+
+    @Override
+    public void close() {
+    }
 }

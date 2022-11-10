@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-public class MHapFile {
+public class MHapFile implements InputFile {
     public static final Logger log = LoggerFactory.getLogger(MHapFile.class);
 
     TabixReader tabixReader;
@@ -21,7 +21,8 @@ public class MHapFile {
         tabixReader = new TabixReader(mHapPath);
     }
 
-    public List<MHapInfo> parseByRegion(Region region, String strand, Boolean isMerge) throws IOException {
+    @Override
+    public List<MHapInfo> parseByRegion(Region region) throws IOException {
         TabixReader.Iterator mhapIterator = tabixReader.query(region.getChrom(), region.getStart() - 1, region.getEnd());
         List<MHapInfo> mHapInfoList = new ArrayList<>();
         String mHapLine = "";
@@ -31,29 +32,31 @@ public class MHapFile {
             if (lineCnt % 1000000 == 0) {
                 log.info("Read " + region.getChrom() + " mhap " + lineCnt + " lines.");
             }
-            if ((strand.equals("plus") && mHapLine.split("\t")[5].equals("-")) ||
-                    (strand.equals("minus") && mHapLine.split("\t")[5].equals("+"))) {
-                continue;
-            }
-            MHapInfo mHapInfo = new MHapInfo(mHapLine.split("\t")[0], Integer.valueOf(mHapLine.split("\t")[1]),
-                    Integer.valueOf(mHapLine.split("\t")[2]), mHapLine.split("\t")[3],
-                    Integer.valueOf(mHapLine.split("\t")[4]), mHapLine.split("\t")[5]);
-            if (isMerge) {
-                mHapInfoList.add(mHapInfo);
-            } else {
-                Integer cnt = mHapInfo.getCnt();
-                if (cnt > 1) {
-                    for (int i = 0; i < cnt; i++) {
-                        mHapInfo.setCnt(1);
-                        mHapInfoList.add(mHapInfo);
-                    }
-                } else {
-                    mHapInfoList.add(mHapInfo);
-                }
-            }
+            MHapInfo mHapInfo = new MHapInfo();
+            mHapInfo.setChrom(mHapLine.split("\t")[0]);
+            mHapInfo.setStart(Integer.valueOf(mHapLine.split("\t")[1]));
+            mHapInfo.setEnd(Integer.valueOf(mHapLine.split("\t")[2]));
+            mHapInfo.setCpg(mHapLine.split("\t")[3]);
+            mHapInfo.setCnt(Integer.valueOf(mHapLine.split("\t")[4]));
+            mHapInfo.setStrand(mHapLine.split("\t")[5]);
+            mHapInfoList.add(mHapInfo);
         }
 
-        tabixReader.close();
         return mHapInfoList;
+    }
+
+    @Override
+    public List<?> parseWholeFile() throws Exception {
+        return null;
+    }
+
+    @Override
+    public Map<?, ?> parseWholeFileGroupByChr() throws Exception {
+        return null;
+    }
+
+    @Override
+    public void close() {
+        tabixReader.close();
     }
 }

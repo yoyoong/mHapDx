@@ -11,15 +11,6 @@ public class MHapInfo implements Serializable {
     public Integer cnt;
     public String strand;
 
-    public MHapInfo(String chrom, Integer start, Integer end, String cpg, Integer cnt, String strand) {
-        this.chrom = chrom;
-        this.start = start;
-        this.end = end;
-        this.cpg = cpg;
-        this.cnt = cnt;
-        this.strand = strand;
-    }
-
     public String getChrom() {
         return chrom;
     }
@@ -82,30 +73,5 @@ public class MHapInfo implements Serializable {
 
     public String index() {
         return this.chrom + this.start+ this.end + this.cpg + this.strand;
-    }
-
-    public String sort() {
-        DecimalFormat decimalFormat = new DecimalFormat("0000000000");
-        String startFormat = decimalFormat.format(this.start);
-        String endFormat = decimalFormat.format(this.end);
-        return this.chrom + startFormat + endFormat + this.cpg + this.strand;
-    }
-
-    public String print() {
-        return this.chrom + "\t" + this.start + "\t"+ this.end + "\t"
-                + this.cpg + "\t" + this.cnt + "\t" + this.strand;
-    }
-
-    public int compareTo(MHapInfo mHapInfo) {
-        DecimalFormat decimalFormat = new DecimalFormat("0000000000");
-        String start1 = decimalFormat.format(this.start);
-        String end1 = decimalFormat.format(this.end);
-        String start2 = decimalFormat.format(mHapInfo.getStart());
-        String end2 = decimalFormat.format(mHapInfo.getEnd());
-
-        String mhapString1 = this.chrom + start1 + end1 + this.cpg + this.strand;
-        String mhapString2 = mHapInfo.getChrom() + start2 + end2 + mHapInfo.getCpg() + mHapInfo.getStrand();
-
-        return mhapString1.compareTo(mhapString2);
     }
 }

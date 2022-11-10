@@ -11,8 +11,6 @@ import com.common.Util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedWriter;
-import java.lang.reflect.Field;
 import java.util.*;
 
 public class SearchPrimer {
@@ -43,7 +41,7 @@ public class SearchPrimer {
             regionList.add(region);
         } else if (args.getBedPath() != null && !args.getBedPath().equals("")) {
             BedFile bedFile = new BedFile(args.getBedPath());
-            regionList = bedFile.parseToRegionList();
+            regionList = bedFile.parseWholeFile();
         }
 
         for (Region region : regionList) {
@@ -55,11 +53,11 @@ public class SearchPrimer {
             }
 
             // parse the mhap file
-            List<MHapInfo> tumorMHapList = mHapFileT.parseByRegion(region, "both", true);
+            List<MHapInfo> tumorMHapList = mHapFileT.parseByRegion(region);
             if (tumorMHapList.size() < 1) {
                 continue;
             }
-            List<MHapInfo> normalMHapList = mHapFileN.parseByRegion(region, "both", true);
+            List<MHapInfo> normalMHapList = mHapFileN.parseByRegion(region);
             if (normalMHapList.size() < 1) {
                 continue;
             }
@@ -217,6 +215,9 @@ public class SearchPrimer {
             log.info("searchPrimer read" + region.toHeadString() + " end! ");
             outputFIle.close();
         }
+        cpgFile.close();
+        mHapFileN.close();
+        mHapFileT.close();
 
         log.info("command.searchPrimer end!");
     }

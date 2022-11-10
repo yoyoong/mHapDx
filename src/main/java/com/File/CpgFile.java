@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-public class CpgFile {
+public class CpgFile implements InputFile {
     public static final Logger log = LoggerFactory.getLogger(CpgFile.class);
 
     TabixReader tabixReader;
@@ -21,6 +21,7 @@ public class CpgFile {
         tabixReader = new TabixReader(cpgPath);
     }
 
+    @Override
     public List<Integer> parseByRegion(Region region) throws Exception {
         List<Integer> cpgPosList = new ArrayList<>();
         TabixReader.Iterator cpgIterator = tabixReader.query(region.getChrom(), region.getStart(), region.getEnd());
@@ -36,7 +37,13 @@ public class CpgFile {
         return cpgPosList;
     }
 
-    public Map<String, List<Integer>> parseWholeCpgFile() throws Exception {
+    @Override
+    public List<?> parseWholeFile() throws Exception {
+        return null;
+    }
+
+    @Override
+    public Map<String, List<Integer>> parseWholeFileGroupByChr() throws Exception {
         TreeMap<String, List<Integer>> cpgPosListMap = new TreeMap<>();
 
         List<Integer> cpgPosList = new ArrayList<>();
@@ -77,7 +84,11 @@ public class CpgFile {
             }
         }
 
-        tabixReader.close();
         return cpgPosList;
+    }
+
+    @Override
+    public void close() {
+        tabixReader.close();
     }
 }
