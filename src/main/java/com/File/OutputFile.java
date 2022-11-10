@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.lang.reflect.Field;
 
 public class OutputFile {
     public static final Logger log = LoggerFactory.getLogger(OutputFile.class);
@@ -45,7 +46,23 @@ public class OutputFile {
         bufferedWriter = new BufferedWriter(fileWriter);
     }
 
-    public void writeLine(String line) throws IOException {
+    public void writeHead() throws IOException {
+        Field[] fields = this.getClass().getDeclaredFields();// get the field name list
+        String head = fields[0].getName();
+        for (int i = 1; i < fields.length; i++) { // joint the fields generate head string
+            head += "\t" + fields[i].getName();
+        }
+        head += "\n";
+        bufferedWriter.write(head);
+    }
+
+    public void writeLine() throws IOException, IllegalAccessException {
+        Field[] fields = this.getClass().getDeclaredFields();// get the field name list
+        String line = (String) fields[0].get(this);
+        for (int i = 1; i < fields.length; i++) { // joint the fields generate line string
+            line += "\t" + fields[i].get(this);
+        }
+        line += "\n";
         bufferedWriter.write(line);
     }
 

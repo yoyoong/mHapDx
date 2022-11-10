@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.BufferedWriter;
+import java.lang.reflect.Field;
 import java.util.*;
 
 public class SearchPrimer {
@@ -65,8 +66,7 @@ public class SearchPrimer {
 
             String outputFIleName = args.getTag() + "_" + region.toFileString() + ".searchPrimer.txt";
             SearchPrimerOutputFIle outputFIle = new SearchPrimerOutputFIle(args.getOutputDir(), outputFIleName);
-            outputFIle.writeLine("Fpos" + "\t" + "Rpos" + "\t" + "Fpattern" + "\t" + "Rpattern" + "\t" +
-                    "T_RC" + "\t" + "T_PRC" + "\t" + "T" + "\t" + "N_RC" + "\t" + "N_PRC" + "\t" +"N" + "\t" + "FC" + "\n");
+            outputFIle.writeHead();
 
             Region fWindow = new Region(region.getChrom(), 0, 0); // forward window region
             Integer fWindowStart = region.getStart(); // forward window start position
@@ -168,10 +168,18 @@ public class SearchPrimer {
                         }
                         Double foldChange = tumorRate / normalRate;
                         if (tumorRate >= args.getMinT() && normalRate <= args.getMaxN() && foldChange >= args.getMinFC()) {
-                            outputFIle.writeLine(fWindow.toHeadString() + "\t" + rWindow.toHeadString() + "\t" +
-                                    key.substring(fWindowCpgStartIndex, fWindowCpgEndIndex + 1) + "\t" + key.substring(fWindowCpgEndIndex + 1) + "\t"
-                                    + tumarTotalPatternCount + "\t" + tumarPatternCount + "\t" + tumorRate.floatValue() + "\t" +  normalTotalPatternCount + "\t" +
-                                    normalPatternCount + "\t" + normalRate.floatValue() + "\t" + foldChange.floatValue() + "\n");
+                            outputFIle.Fpos = fWindow.toHeadString();
+                            outputFIle.Rpos = rWindow.toHeadString();
+                            outputFIle.Fpattern = key.substring(fWindowCpgStartIndex, fWindowCpgEndIndex + 1);
+                            outputFIle.Rpattern = key.substring(fWindowCpgEndIndex + 1);
+                            outputFIle.T_RC = tumarTotalPatternCount;
+                            outputFIle.T_PRC = tumarPatternCount;
+                            outputFIle.T = tumorRate.floatValue();
+                            outputFIle.N_RC = normalTotalPatternCount;
+                            outputFIle.N_PRC = normalPatternCount;
+                            outputFIle.N = normalRate.floatValue();
+                            outputFIle.FC = foldChange.floatValue();
+                            outputFIle.writeLine();
                         }
                     }
 
@@ -185,10 +193,18 @@ public class SearchPrimer {
                             Double normalRate = newNormalPatternMap.get(key).doubleValue() / normalTotalPatternCount.doubleValue();
                             Double foldChange = tumorRate / normalRate;
                             if (tumorRate >= args.getMinT() && normalRate <= args.getMaxN() && foldChange >= args.getMinFC()) {
-                                outputFIle.writeLine(fWindow.toHeadString() + "\t" + rWindow.toHeadString() + "\t" +
-                                        key.substring(fWindowCpgStartIndex, fWindowCpgEndIndex + 1) + "\t" + key.substring(fWindowCpgEndIndex + 1) + "\t"
-                                        + tumarTotalPatternCount + "\t" + tumarPatternCount + "\t" + tumorRate.floatValue() + "\t" +  normalTotalPatternCount + "\t" +
-                                        normalPatternCount + "\t" + normalRate.floatValue() + "\t" + foldChange.floatValue() + "\n");
+                                outputFIle.Fpos = fWindow.toHeadString();
+                                outputFIle.Rpos = rWindow.toHeadString();
+                                outputFIle.Fpattern = key.substring(fWindowCpgStartIndex, fWindowCpgEndIndex + 1);
+                                outputFIle.Rpattern = key.substring(fWindowCpgEndIndex + 1);
+                                outputFIle.T_RC = tumarTotalPatternCount;
+                                outputFIle.T_PRC = tumarPatternCount;
+                                outputFIle.T = tumorRate.floatValue();
+                                outputFIle.N_RC = normalTotalPatternCount;
+                                outputFIle.N_PRC = normalPatternCount;
+                                outputFIle.N = normalRate.floatValue();
+                                outputFIle.FC = foldChange.floatValue();
+                                outputFIle.writeLine();
                             }
                         }
 
