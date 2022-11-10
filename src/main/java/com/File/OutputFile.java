@@ -46,7 +46,7 @@ public class OutputFile {
         bufferedWriter = new BufferedWriter(fileWriter);
     }
 
-    public void writeHead() throws IOException {
+    public void writeHead() throws Exception {
         Field[] fields = this.getClass().getDeclaredFields();// get the field name list
         String head = fields[0].getName();
         for (int i = 1; i < fields.length; i++) { // joint the fields generate head string
@@ -56,7 +56,7 @@ public class OutputFile {
         bufferedWriter.write(head);
     }
 
-    public void writeLine() throws IOException, IllegalAccessException {
+    public void writeLine() throws Exception {
         Field[] fields = this.getClass().getDeclaredFields();// get the field name list
         String line = (String) fields[0].get(this);
         for (int i = 1; i < fields.length; i++) { // joint the fields generate line string

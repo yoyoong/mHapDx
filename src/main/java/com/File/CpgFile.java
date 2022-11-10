@@ -33,7 +33,6 @@ public class CpgFile implements InputFile {
                 cpgPosList.add(Integer.valueOf(cpgLine.split("\t")[1]));
             }
         }
-        tabixReader.close();
         return cpgPosList;
     }
 
@@ -67,7 +66,6 @@ public class CpgFile implements InputFile {
         cpgPosListMap.put(lastChr, cpgPosList);
         log.info("Read cpg file success.");
 
-        tabixReader.close();
         return cpgPosListMap;
     }
 

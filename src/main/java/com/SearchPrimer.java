@@ -80,7 +80,7 @@ public class SearchPrimer {
                 }
 
                 // get the cpg position list in forward window
-                List<Integer> cpgPosListInFWindow = getCpgPosListInWindow(cpgPosList, fWindow);
+                List<Integer> cpgPosListInFWindow = cpgFile.parseByRegion(fWindow);
                 if (cpgPosListInFWindow.size() < 1) {
                     continue;
                 }
@@ -96,12 +96,11 @@ public class SearchPrimer {
                     Region f2rWindow = new Region(region.getChrom(), fWindow.getStart(), rWindow.getEnd());
 
                     // get the cpg position list in both forward and reverse window
-                    List<Integer> cpgPosListInWindow = getCpgPosListInWindow(cpgPosList, f2rWindow);
+                    List<Integer> cpgPosListInWindow = cpgFile.parseByRegion(f2rWindow);
                     if (cpgPosListInWindow.size() < 1) {
                         continue;
                     }
-                    // get the cpg position list in reverse window
-                    List<Integer> cpgPosListInRWindow = getCpgPosListInWindow(cpgPosList, rWindow);
+                    List<Integer> cpgPosListInRWindow = cpgFile.parseByRegion(rWindow);
                     if (cpgPosListInRWindow.size() < 1) {
                         continue;
                     }
@@ -111,18 +110,8 @@ public class SearchPrimer {
                     Integer rWindowCpgEndIndex = util.indexOfList(cpgPosListInWindow, cpgPosListInRWindow.get(cpgPosListInRWindow.size() - 1));                    Integer cpgStart = cpgPosListInWindow.get(fWindowCpgStartIndex);
                     Integer cpgEnd = cpgPosListInWindow.get(rWindowCpgEndIndex);
 
-                    // get the tumor and normal mhap list in window
-                    List<MHapInfo> tumorMHapListInWindow = getMHapListInWindow(tumorMHapList, cpgStart, cpgEnd);
-                    if (tumorMHapListInWindow.size() < args.getMinCov()) {
-                        continue;
-                    }
-                    List<MHapInfo> normalMHapListInWindow = getMHapListInWindow(normalMHapList, cpgStart, cpgEnd);
-                    if (normalMHapListInWindow.size() < args.getMinCov()) {
-                        continue;
-                    }
-
                     // get the tumor pattern in window
-                    Map<String, Integer> tumorPatternMap = getPatternInWindow(tumorMHapListInWindow, cpgPosList, cpgStart, cpgEnd);
+                    Map<String, Integer> tumorPatternMap = util.getPatternInWindow(tumorMHapList, cpgPosList, cpgStart, cpgEnd);
                     Map<String, Integer> newTumorPatternMap = new HashMap<>();
                     Iterator<String> tumorPatternMapIterator = tumorPatternMap.keySet().iterator();
                     while (tumorPatternMapIterator.hasNext()) {
@@ -136,7 +125,7 @@ public class SearchPrimer {
                     }
 
                     // get the normal pattern in window
-                    Map<String, Integer> normalPatternMap = getPatternInWindow(normalMHapListInWindow, cpgPosList, cpgStart, cpgEnd);
+                    Map<String, Integer> normalPatternMap = util.getPatternInWindow(normalMHapList, cpgPosList, cpgStart, cpgEnd);
                     Map<String, Integer> newNormalPatternMap = new HashMap<>();
                     Iterator<String> normalPatternMapIterator = normalPatternMap.keySet().iterator();
                     while (normalPatternMapIterator.hasNext()) {
@@ -237,56 +226,6 @@ public class SearchPrimer {
         }
 
         return true;
-    }
-
-    private List<Integer> getCpgPosListInWindow(List<Integer> cpgPosList, Region window) {
-        List<Integer> cpgPosListInWindow = new ArrayList<>();
-
-        Integer cpgIndex;
-        Integer startPos = window.getStart();
-        while (startPos <= window.getEnd() && util.indexOfList(cpgPosList, startPos) < 0) {
-            startPos++;
-        }
-        if (startPos >= window.getEnd()) {
-            return cpgPosListInWindow;
-        }
-        cpgIndex = util.indexOfList(cpgPosList, startPos);
-
-        while (cpgIndex < cpgPosList.size() && cpgPosList.get(cpgIndex) <= window.getEnd()) {
-            cpgPosListInWindow.add(cpgPosList.get(cpgIndex));
-            cpgIndex++;
-        }
-
-        return cpgPosListInWindow;
-    }
-
-    private List<MHapInfo> getMHapListInWindow(List<MHapInfo> mHapList, Integer startCpg, Integer endCpg) {
-        List<MHapInfo> mHapListNew = new ArrayList<>();
-        for (MHapInfo mHapInfo : mHapList) {
-            if (mHapInfo.getStart() <= startCpg && mHapInfo.getEnd() >= endCpg) {
-                mHapListNew.add(mHapInfo);
-            }
-            if (mHapInfo.getStart() > startCpg) {
-                break;
-            }
-        }
-        return mHapListNew;
-    }
-
-    private Map<String, Integer> getPatternInWindow(List<MHapInfo> mHapList, List<Integer> cpgPosList, Integer startCpg, Integer endCpg) {
-        Map<String, Integer> tumorPatternMap = new HashMap<>();
-
-        for (MHapInfo mHapInfo : mHapList) {
-            Integer startCpgIndex = util.indexOfList(cpgPosList, startCpg) - util.indexOfList(cpgPosList, mHapInfo.getStart());
-            Integer endCpgIndex = util.indexOfList(cpgPosList, endCpg) - util.indexOfList(cpgPosList, mHapInfo.getStart());
-            String pattern = mHapInfo.getCpg().substring(startCpgIndex, endCpgIndex + 1);
-            if (tumorPatternMap.containsKey(pattern)) {
-                tumorPatternMap.put(pattern, tumorPatternMap.get(pattern) + mHapInfo.getCnt());
-            } else {
-                tumorPatternMap.put(pattern, mHapInfo.getCnt());
-            }
-        }
-        return tumorPatternMap;
     }
 
 }
