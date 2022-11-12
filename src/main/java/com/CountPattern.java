@@ -1,7 +1,11 @@
 package com;
 
-import com.File.*;
-import com.args.ListPatternArgs;
+import com.File.CountPatternOutputFile;
+import com.File.CpgFile;
+import com.File.ListPatternOutputFile;
+import com.File.MHapFile;
+import com.args.CountPatternArgs;
+import com.bean.CountPatternInfo;
 import com.bean.ListPatternInfo;
 import com.bean.MHapInfo;
 import com.bean.Region;
@@ -11,15 +15,15 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
-public class ListPattern {
-    public static final Logger log = LoggerFactory.getLogger(ListPattern.class);
+public class CountPattern {
+    public static final Logger log = LoggerFactory.getLogger(CountPattern.class);
 
-    ListPatternArgs args = new ListPatternArgs();
+    CountPatternArgs args = new CountPatternArgs();
     Util util = new Util();
 
-    public void listPattern(ListPatternArgs listPatternArgs) throws Exception {
-        log.info("command.listPattern start!");
-        args = listPatternArgs;
+    public void countPattern(CountPatternArgs countPatternArgs) throws Exception {
+        log.info("command.countPattern start!");
+        args = countPatternArgs;
 
         CpgFile cpgFile = new CpgFile(args.getCpgPath());
 
@@ -58,8 +62,8 @@ public class ListPattern {
         Integer rPrimerCpgEndIndex = util.indexOfList(cpgPosListInWindow, cpgPosListInRPrimer.get(cpgPosListInRPrimer.size() - 1));
 
         String[] mHapPathList = args.getMhapPath().split(" ");
-        List<ListPatternInfo> listPatternInfoList = new ArrayList<>();
-        List<String> patternList = new ArrayList<>();
+        int[] patternCntList = new int[mHapPathList.length];
+        int[] totalCntList = new int[mHapPathList.length];
         for (int i = 0; i < mHapPathList.length; i++) {
             MHapFile mHapFile = new MHapFile(mHapPathList[i]);
             List<MHapInfo> mHapListInWindow = mHapFile.parseByRegion(region);
@@ -80,27 +84,14 @@ public class ListPattern {
                     patternMapCutted.put(newKey, patternMap.get(key));
                 }
             }
+            totalCntList[i] = patternMapCutted.entrySet().stream().mapToInt(t->t.getValue()).sum();
 
             // get the pattern list
             Iterator<String> patternMapCuttedIterator = patternMapCutted.keySet().iterator();
             while (patternMapCuttedIterator.hasNext()) {
-                String key = patternMapCuttedIterator.next();
-                if (patternList.contains(key)) { // exist, get the listPatternInfo of pattern and add to the patternCntList
-                    ListPatternInfo listPatternInfo = listPatternInfoList.get(patternList.indexOf(key));
-                    int[] patternCntList = listPatternInfo.getPatternCntList();
-                    patternCntList[i] = patternMapCutted.get(key);
-                    listPatternInfo.setPatternCntList(patternCntList);
-                } else { // not exist, add a new listPatternInfo
-                    patternList.add(key);
-                    ListPatternInfo listPatternInfo = new ListPatternInfo();
-                    listPatternInfo.setF_Primer(fPrimer.toHeadString());
-                    listPatternInfo.setR_Primer(rPrimer.toHeadString());
-                    listPatternInfo.setFpattern(key.substring(fPrimerCpgStartIndex, fPrimerCpgEndIndex + 1));
-                    listPatternInfo.setRpattern(key.substring(fPrimerCpgEndIndex + 1));
-                    int[] patternCntList = new int[mHapPathList.length];
-                    patternCntList[i] = patternMapCutted.get(key);
-                    listPatternInfo.setPatternCntList(patternCntList);
-                    listPatternInfoList.add(listPatternInfo);
+                String pattern = patternMapCuttedIterator.next();
+                if (pattern.equals(args.getFPattern() + args.getRPattern())) {
+                    patternCntList[i] = patternMapCutted.get(pattern);
                 }
             }
 
@@ -108,18 +99,24 @@ public class ListPattern {
         }
 
         // create the output file and write
-        String outputFileName = args.getTag() + ".listPattern.txt";
-        ListPatternOutputFile outputFile = new ListPatternOutputFile(args.getOutputDir(), outputFileName);
+        String outputFileName = args.getTag() + ".countPattern.txt";
+        CountPatternOutputFile outputFile = new CountPatternOutputFile(args.getOutputDir(), outputFileName);
         outputFile.mHapPathList = mHapPathList;
         outputFile.writeHead();
-        for (int i = 0; i < listPatternInfoList.size(); i++) {
-            outputFile.listPatternInfo = listPatternInfoList.get(i);
-            outputFile.writeLine();
-        }
+
+        CountPatternInfo countPatternInfo = new CountPatternInfo();
+        countPatternInfo.setF_Primer(fPrimer.toHeadString());
+        countPatternInfo.setR_Primer(rPrimer.toHeadString());
+        countPatternInfo.setFpattern(args.getFPattern());
+        countPatternInfo.setRpattern(args.getRPattern());
+        countPatternInfo.patternCntList = patternCntList;
+        countPatternInfo.totalCntList = totalCntList;
+        outputFile.countPatternInfo = countPatternInfo;
+        outputFile.writeLine();
 
         outputFile.close();
         cpgFile.close();
-        log.info("command.listPattern end!");
+        log.info("command.countPattern end!");
     }
 
     private boolean checkArgs() {

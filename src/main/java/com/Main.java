@@ -1,5 +1,6 @@
 package com;
 
+import com.args.CountPatternArgs;
 import com.args.ListPatternArgs;
 import com.args.SearchPrimerArgs;
 import com.common.Annotation;
@@ -12,6 +13,7 @@ import java.util.Set;
 public class Main {
     static SearchPrimer searchPrimer = new SearchPrimer();
     static ListPattern listPattern = new ListPattern();
+    static CountPattern countPattern = new CountPattern();
 
     public static void main(String[] args) throws Exception {
         System.setProperty("java.awt.headless", "true");
@@ -26,6 +28,11 @@ public class Main {
                 ListPatternArgs listPatternArgs = parseListPattern(args);
                 if (listPatternArgs != null) {
                     listPattern.listPattern(listPatternArgs);
+                }
+            } else if (args[0].equals("countPattern")) {
+                CountPatternArgs countPatternArgs = parseCountPattern(args);
+                if (countPatternArgs != null) {
+                    countPattern.countPattern(countPatternArgs);
                 }
             } else {
                 System.out.println("unrecognized command:" + args[0]);
@@ -166,5 +173,68 @@ public class Main {
         }
 
         return listPatternArgs;
+    }
+
+    private static CountPatternArgs parseCountPattern(String[] args) throws ParseException {
+        Options options = new Options();
+        Option helpOption = OptionBuilder.withLongOpt("help").withDescription("help").create("h");
+        options.addOption(helpOption);
+        Field[] fields = CountPatternArgs.class.getDeclaredFields();
+        for(Field field : fields) {
+            String annotation = field.getAnnotation(Annotation.class).value();
+            Option option = null;
+            if (field.getType().equals(boolean.class)) {
+                option = OptionBuilder.withLongOpt(field.getName()).withDescription(annotation).create(field.getName());
+            } else {
+                option = OptionBuilder.withLongOpt(field.getName()).hasArg().withDescription(annotation).create(field.getName());
+            }
+            options.addOption(option);
+        }
+
+        BasicParser parser = new BasicParser();
+        CountPatternArgs countPatternArgs = new CountPatternArgs();
+        CommandLine commandLine = parser.parse(options, args);
+        if (commandLine.getOptions().length > 0) {
+            if (commandLine.hasOption('h')) {
+                HelpFormatter helpFormatter = new HelpFormatter();
+                helpFormatter.printHelp("Options", options);
+                return null;
+            } else {
+                countPatternArgs.setMhapPath(commandLine.getOptionValue("mhapPath"));
+                String mhapPaths = commandLine.getOptionValue("mhapPath");
+                if (commandLine.getArgs().length > 1) {
+                    for (int i = 1; i < commandLine.getArgs().length; i++) {
+                        mhapPaths += " " + commandLine.getArgs()[i];
+                    }
+                }
+                // 去除重复的metrics
+                String[] mhapPathsList = mhapPaths.split(" ");
+                Set<Object> haoma = new LinkedHashSet<Object>();
+                for (int i = 0; i < mhapPathsList.length; i++) {
+                    haoma.add(mhapPathsList[i]);
+                }
+                String realMhapPaths = "";
+                for (int i = 0; i < haoma.size(); i++) {
+                    realMhapPaths += " " + haoma.toArray()[i];
+                }
+                countPatternArgs.setMhapPath(realMhapPaths.trim());
+
+                countPatternArgs.setCpgPath(commandLine.getOptionValue("cpgPath"));
+                countPatternArgs.setFPrimer(commandLine.getOptionValue("FPrimer"));
+                countPatternArgs.setRPrimer(commandLine.getOptionValue("RPrimer"));
+                countPatternArgs.setFPattern(commandLine.getOptionValue("FPattern"));
+                countPatternArgs.setRPattern(commandLine.getOptionValue("RPattern"));
+                if (commandLine.hasOption("outputDir")) {
+                    countPatternArgs.setOutputDir(commandLine.getOptionValue("outputDir"));
+                }
+                if (commandLine.hasOption("tag")) {
+                    countPatternArgs.setTag(commandLine.getOptionValue("tag"));
+                }
+            }
+        } else {
+            System.out.println("The paramter is null");
+        }
+
+        return countPatternArgs;
     }
 }
