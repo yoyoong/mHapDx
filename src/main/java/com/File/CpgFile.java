@@ -16,6 +16,7 @@ public class CpgFile implements InputFile {
     public static final Logger log = LoggerFactory.getLogger(CpgFile.class);
 
     TabixReader tabixReader;
+    TabixReader.Iterator cpgIterator;
 
     public CpgFile(String cpgPath) throws IOException {
         tabixReader = new TabixReader(cpgPath);
@@ -24,7 +25,13 @@ public class CpgFile implements InputFile {
     @Override
     public List<Integer> parseByRegion(Region region) throws Exception {
         List<Integer> cpgPosList = new ArrayList<>();
-        TabixReader.Iterator cpgIterator = tabixReader.query(region.getChrom(), region.getStart(), region.getEnd());
+        String osName = System.getProperty("os.name");
+        if(osName.startsWith("Linux")) { // windows系统end要加1？linux系统的end值与某行第二列相同时，该行不能扫描进来？
+            cpgIterator = tabixReader.query(region.getChrom(), region.getStart(), region.getEnd() + 1);
+        } else {
+            cpgIterator = tabixReader.query(region.getChrom(), region.getStart(), region.getEnd());
+        }
+
         String cpgLine = "";
         while((cpgLine = cpgIterator.next()) != null) {
             if (cpgLine.split("\t").length < 3) {
@@ -72,7 +79,7 @@ public class CpgFile implements InputFile {
     public List<Integer> parseByRegionWithShift(Region region, Integer shift) throws Exception {
         List<Integer> cpgPosList = new ArrayList<>();
         Integer start = region.getStart() - shift > 1 ? region.getStart() - shift : 1;
-        TabixReader.Iterator cpgIterator = tabixReader.query(region.getChrom(), start, region.getEnd() + shift);
+        cpgIterator = tabixReader.query(region.getChrom(), start, region.getEnd() + shift);
         String cpgLine = "";
         while((cpgLine = cpgIterator.next()) != null) {
             if (cpgLine.split("\t").length < 3) {

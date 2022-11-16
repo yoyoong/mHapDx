@@ -24,10 +24,10 @@ public class CountPatternOutputFile extends OutputFile {
             }
         }
         for (int i = 0; i < mHapPathList.length; i++) {
-            head += "\t" + "count" + (i + 1) + "(" + mHapPathList[i] + ")";
+            head += "\t" + "count" + (i + 1);
         }
         for (int i = 0; i < mHapPathList.length; i++) {
-            head += "\t" + "total" + (i + 1) + "(" + mHapPathList[i] + ")";
+            head += "\t" + "total" + (i + 1);
         }
         head += "\n";
         bufferedWriter.write(head);

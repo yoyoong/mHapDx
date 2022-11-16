@@ -56,13 +56,13 @@ public class MainTest extends TestCase {
         Main main = new Main();
         String arg0 = "listPattern";
         String arg1 = "-mhapPath";
-        String arg2 = "esophagus_T.mhap.gz esophagus_N.mhap.gz esophagus_A.mhap.gz";
+        String arg2 = "NG_lung_merged.mhap.gz NG_normal_merged.mhap.gz";
         String arg3 = "-cpgPath";
         String arg4 = "hg19_CpG.gz";
         String arg5 = "-FPrimer";
-        String arg6 = "chr1:942438-942451";
+        String arg6 = "chr20:43727100-43727119";
         String arg7 = "-RPrimer";
-        String arg8 = "chr1:942471-942498";
+        String arg8 = "chr20:43727181-43727200";
         String arg9 = "-outputDir";
         String arg10 = "outputDir";
         String arg11 = "-tag";

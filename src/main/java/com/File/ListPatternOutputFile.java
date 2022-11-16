@@ -24,7 +24,7 @@ public class ListPatternOutputFile extends OutputFile {
             }
         }
         for (int i = 0; i < mHapPathList.length; i++) {
-            head += "\t" + "count" + (i + 1) + "(" + mHapPathList[i] + ")";
+            head += "\t" + "count" + (i + 1);
         }
         head += "\n";
         bufferedWriter.write(head);
