@@ -159,8 +159,15 @@ public class Main {
                 listPatternArgs.setMhapPath(realMhapPaths.trim());
 
                 listPatternArgs.setCpgPath(commandLine.getOptionValue("cpgPath"));
-                listPatternArgs.setFPrimer(commandLine.getOptionValue("FPrimer"));
-                listPatternArgs.setRPrimer(commandLine.getOptionValue("RPrimer"));
+                if (commandLine.hasOption("FPrimer")) {
+                    listPatternArgs.setFPrimer(commandLine.getOptionValue("FPrimer"));
+                }
+                if (commandLine.hasOption("RPrimer")) {
+                    listPatternArgs.setRPrimer(commandLine.getOptionValue("RPrimer"));
+                }
+                if (commandLine.hasOption("bedPath")) {
+                    listPatternArgs.setBedPath(commandLine.getOptionValue("bedPath"));
+                }
                 if (commandLine.hasOption("outputDir")) {
                     listPatternArgs.setOutputDir(commandLine.getOptionValue("outputDir"));
                 }
@@ -220,10 +227,21 @@ public class Main {
                 countPatternArgs.setMhapPath(realMhapPaths.trim());
 
                 countPatternArgs.setCpgPath(commandLine.getOptionValue("cpgPath"));
-                countPatternArgs.setFPrimer(commandLine.getOptionValue("FPrimer"));
-                countPatternArgs.setRPrimer(commandLine.getOptionValue("RPrimer"));
-                countPatternArgs.setFPattern(commandLine.getOptionValue("FPattern"));
-                countPatternArgs.setRPattern(commandLine.getOptionValue("RPattern"));
+                if (commandLine.hasOption("FPrimer")) {
+                    countPatternArgs.setFPrimer(commandLine.getOptionValue("FPrimer"));
+                }
+                if (commandLine.hasOption("RPrimer")) {
+                    countPatternArgs.setRPrimer(commandLine.getOptionValue("RPrimer"));
+                }
+                if (commandLine.hasOption("FPattern")) {
+                    countPatternArgs.setFPattern(commandLine.getOptionValue("FPattern"));
+                }
+                if (commandLine.hasOption("RPattern")) {
+                    countPatternArgs.setRPattern(commandLine.getOptionValue("RPattern"));
+                }
+                if (commandLine.hasOption("bedPath")) {
+                    countPatternArgs.setBedPath(commandLine.getOptionValue("bedPath"));
+                }
                 if (commandLine.hasOption("outputDir")) {
                     countPatternArgs.setOutputDir(commandLine.getOptionValue("outputDir"));
                 }

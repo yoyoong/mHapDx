@@ -50,6 +50,16 @@ public class BedFile implements InputFile{
         return null;
     }
 
+    public List<String> getLineList() throws Exception {
+        List<String> lineList = new ArrayList<>();
+        BufferedReader bufferedReader = new BufferedReader(new FileReader(bedFile));
+        String bedLine = "";
+        while ((bedLine = bufferedReader.readLine()) != null && !bedLine.equals("")) {
+            lineList.add(bedLine);
+        }
+        return lineList;
+    }
+
     @Override
     public void close() {
     }

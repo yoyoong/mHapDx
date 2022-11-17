@@ -17,6 +17,8 @@ public class CountPatternArgs implements Serializable {
     public String FPattern = "";
     @Annotation("reverse primer cpg pattern, in the format of mhap")
     public String RPattern = "";
+    @Annotation("a bed file, in the format of \"FPrimer\\tRPrimer\\\tFPattern\\\tRPattern\"")
+    public String bedPath = "";
     @Annotation("output directory, created in advance")
     public String outputDir = "";
     @Annotation("prefix of the output file(s)")
@@ -68,6 +70,14 @@ public class CountPatternArgs implements Serializable {
 
     public void setRPattern(String RPattern) {
         this.RPattern = RPattern;
+    }
+
+    public String getBedPath() {
+        return bedPath;
+    }
+
+    public void setBedPath(String bedPath) {
+        this.bedPath = bedPath;
     }
 
     public String getOutputDir() {

@@ -66,6 +66,9 @@ public class SearchPrimer {
             SearchPrimerOutputFIle outputFIle = new SearchPrimerOutputFIle(args.getOutputDir(), outputFIleName);
             outputFIle.writeHead();
 
+            // primer list
+            List<String> primerList = new ArrayList<>();
+
             Region fWindow = new Region(region.getChrom(), 0, 0); // forward window region
             Integer fWindowStart = region.getStart(); // forward window start position
             Integer totalPosCnt = region.getEnd() - region.getStart();
@@ -110,6 +113,9 @@ public class SearchPrimer {
                     Integer rWindowCpgEndIndex = util.indexOfList(cpgPosListInWindow, cpgPosListInRWindow.get(cpgPosListInRWindow.size() - 1));                    Integer cpgStart = cpgPosListInWindow.get(fWindowCpgStartIndex);
                     Integer cpgEnd = cpgPosListInWindow.get(rWindowCpgEndIndex);
 
+                    Region fPrimerRegion = new Region(region.getChrom(), cpgPosListInFWindow.get(0), cpgPosListInFWindow.get(cpgPosListInFWindow.size() - 1));
+                    Region rPrimerRegion = new Region(region.getChrom(), cpgPosListInRWindow.get(0), cpgPosListInRWindow.get(cpgPosListInRWindow.size() - 1));
+
                     // get the tumor pattern in window
                     Map<String, Integer> tumorPatternMap = util.getPatternInWindow(tumorMHapList, cpgPosList, cpgStart, cpgEnd);
                     Map<String, Integer> newTumorPatternMap = new HashMap<>();
@@ -141,6 +147,9 @@ public class SearchPrimer {
                     // get the tumor and normal total pattern count
                     Integer tumarTotalPatternCount = newTumorPatternMap.entrySet().stream().mapToInt(t->t.getValue()).sum();
                     Integer normalTotalPatternCount = newNormalPatternMap.entrySet().stream().mapToInt(t->t.getValue()).sum();
+                    if (tumarTotalPatternCount < args.getMinCov() || normalTotalPatternCount < args.getMinCov()) {
+                        continue;
+                    }
 
                     tumorPatternMapIterator = newTumorPatternMap.keySet().iterator();
                     while (tumorPatternMapIterator.hasNext()) {
@@ -154,9 +163,12 @@ public class SearchPrimer {
                             normalRate = newNormalPatternMap.get(key).doubleValue() / normalTotalPatternCount.doubleValue();
                         }
                         Double foldChange = tumorRate / normalRate;
-                        if (tumorRate >= args.getMinT() && normalRate <= args.getMaxN() && foldChange >= args.getMinFC()) {
-                            outputFIle.Fpos = fWindow.toHeadString();
-                            outputFIle.Rpos = rWindow.toHeadString();
+                        String primerIndex = fPrimerRegion.toHeadString() + rPrimerRegion.toHeadString() +
+                                key.substring(fWindowCpgStartIndex, fWindowCpgEndIndex + 1) + key.substring(fWindowCpgEndIndex + 1);
+                        if (tumorRate >= args.getMinT() && normalRate <= args.getMaxN() && foldChange >= args.getMinFC()
+                                && !primerList.contains(primerIndex)) {
+                            outputFIle.Fpos = fPrimerRegion.toHeadString();
+                            outputFIle.Rpos = rPrimerRegion.toHeadString();
                             outputFIle.Fpattern = key.substring(fWindowCpgStartIndex, fWindowCpgEndIndex + 1);
                             outputFIle.Rpattern = key.substring(fWindowCpgEndIndex + 1);
                             outputFIle.T_RC = tumarTotalPatternCount;
@@ -167,6 +179,7 @@ public class SearchPrimer {
                             outputFIle.N = normalRate.floatValue();
                             outputFIle.FC = foldChange.floatValue();
                             outputFIle.writeLine();
+                            primerList.add(primerIndex);
                         }
                     }
 
@@ -179,9 +192,12 @@ public class SearchPrimer {
                             Integer normalPatternCount = newNormalPatternMap.get(key);
                             Double normalRate = newNormalPatternMap.get(key).doubleValue() / normalTotalPatternCount.doubleValue();
                             Double foldChange = tumorRate / normalRate;
-                            if (tumorRate >= args.getMinT() && normalRate <= args.getMaxN() && foldChange >= args.getMinFC()) {
-                                outputFIle.Fpos = fWindow.toHeadString();
-                                outputFIle.Rpos = rWindow.toHeadString();
+                            String primerIndex = fPrimerRegion.toHeadString() + rPrimerRegion.toHeadString() +
+                                    key.substring(fWindowCpgStartIndex, fWindowCpgEndIndex + 1) + key.substring(fWindowCpgEndIndex + 1);
+                            if (tumorRate >= args.getMinT() && normalRate <= args.getMaxN() && foldChange >= args.getMinFC()
+                                    && !primerList.contains(primerIndex)) {
+                                outputFIle.Fpos = fPrimerRegion.toHeadString();
+                                outputFIle.Rpos = rPrimerRegion.toHeadString();
                                 outputFIle.Fpattern = key.substring(fWindowCpgStartIndex, fWindowCpgEndIndex + 1);
                                 outputFIle.Rpattern = key.substring(fWindowCpgEndIndex + 1);
                                 outputFIle.T_RC = tumarTotalPatternCount;
@@ -192,6 +208,7 @@ public class SearchPrimer {
                                 outputFIle.N = normalRate.floatValue();
                                 outputFIle.FC = foldChange.floatValue();
                                 outputFIle.writeLine();
+                                primerList.add(primerIndex);
                             }
                         }
 
