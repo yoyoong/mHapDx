@@ -117,7 +117,7 @@ public class SearchPrimer {
                     Region rPrimerRegion = new Region(region.getChrom(), cpgPosListInRWindow.get(0), cpgPosListInRWindow.get(cpgPosListInRWindow.size() - 1));
 
                     // get the tumor pattern in window
-                    Map<String, Integer> tumorPatternMap = util.getPatternInWindow(tumorMHapList, cpgPosList, cpgStart, cpgEnd);
+                    Map<String, Integer> tumorPatternMap = util.getPatternInWindow(tumorMHapList, cpgPosListInWindow, cpgStart, cpgEnd);
                     Map<String, Integer> newTumorPatternMap = new HashMap<>();
                     Iterator<String> tumorPatternMapIterator = tumorPatternMap.keySet().iterator();
                     while (tumorPatternMapIterator.hasNext()) {
@@ -131,7 +131,7 @@ public class SearchPrimer {
                     }
 
                     // get the normal pattern in window
-                    Map<String, Integer> normalPatternMap = util.getPatternInWindow(normalMHapList, cpgPosList, cpgStart, cpgEnd);
+                    Map<String, Integer> normalPatternMap = util.getPatternInWindow(normalMHapList, cpgPosListInWindow, cpgStart, cpgEnd);
                     Map<String, Integer> newNormalPatternMap = new HashMap<>();
                     Iterator<String> normalPatternMapIterator = normalPatternMap.keySet().iterator();
                     while (normalPatternMapIterator.hasNext()) {
