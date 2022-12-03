@@ -40,7 +40,7 @@ public class ListPattern {
                 Region fPrimer = new Region(line.split("\t")[0]);
                 fPrimer.setStart(fPrimer.getStart() + 1); // bed file is 0-base, add one to fit the 1-base
                 Region rPrimer = new Region(line.split("\t")[1]);
-                rPrimer.setStart(fPrimer.getStart() + 1); // bed file is 0-base, add one to fit the 1-base
+                rPrimer.setStart(rPrimer.getStart() + 1); // bed file is 0-base, add one to fit the 1-base
                 fPrimerList.add(fPrimer);
                 rPrimerList.add(rPrimer);
             }
