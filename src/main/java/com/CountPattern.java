@@ -79,18 +79,18 @@ public class CountPattern {
             // get the cpg position list in FPrimer and RPrimer
             List<Integer> cpgPosListInFPrimer = cpgFile.parseByRegion(fPrimer);
             if (cpgPosListInFPrimer.size() < 1) {
-                return;
+                continue;
             }
             List<Integer> cpgPosListInRPrimer = cpgFile.parseByRegion(rPrimer);
             if (cpgPosListInRPrimer.size() < 1) {
-                return;
+                continue;
             }
 
             // get the cpg position list range from FPrimer to RPrimer
             Region region = new Region(fPrimer.getChrom(), cpgPosListInFPrimer.get(0), cpgPosListInRPrimer.get(cpgPosListInRPrimer.size() - 1));
             List<Integer> cpgPosListInWindow = cpgFile.parseByRegion(region);
             if (cpgPosListInWindow.size() < 1) {
-                return;
+                continue;
             }
 
             // get the FPrimer/RPrimer start/end cpg position index in region
@@ -146,8 +146,6 @@ public class CountPattern {
             outputFile.countPatternInfo = countPatternInfo;
             outputFile.writeLine();
         }
-
-
 
         outputFile.close();
         cpgFile.close();

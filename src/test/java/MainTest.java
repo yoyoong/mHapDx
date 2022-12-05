@@ -99,7 +99,7 @@ public class MainTest extends TestCase {
 //        String arg11 = "-RPattern";
 //        String arg12 = "11111";
         String arg5 = "-bedPath";
-        String arg6 = "testBed.bed";
+        String arg6 = "Both_LUAD_LUSC_primer.txt";
         String arg13 = "-outputDir";
         String arg14 = "outputDir";
         String arg15 = "-tag";
