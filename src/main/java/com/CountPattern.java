@@ -41,9 +41,9 @@ public class CountPattern {
             List<String> lineList = bedFile.getLineList();
             for (String line : lineList) {
                 Region fPrimer = new Region(line.split("\t")[0]);
-                fPrimer.setStart(fPrimer.getStart() + 1); // bed file is 0-base, add one to fit the 1-base
+                fPrimer.setStart(fPrimer.getStart());
                 Region rPrimer = new Region(line.split("\t")[1]);
-                rPrimer.setStart(rPrimer.getStart() + 1); // bed file is 0-base, add one to fit the 1-base
+                rPrimer.setStart(rPrimer.getStart());
                 String fPattern = line.split("\t")[2];
                 String rPattern = line.split("\t")[3];
                 fPrimerList.add(fPrimer);
